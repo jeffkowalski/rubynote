@@ -1,0 +1,2 @@
+https://dev.evernote.com/doc/start/ruby.php
+https://github.com/evernote/evernote-oauth-ruby
