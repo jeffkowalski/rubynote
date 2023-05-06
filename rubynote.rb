@@ -5,7 +5,6 @@
 # https://github.com/evernote/evernote-oauth-ruby?ref=https://githubhelp.com
 # https://dev.evernote.com/doc/articles/search.php
 # https://www.rubydoc.info/gems/evernote-thrift/1.24.0/Evernote/EDAM/NoteStore/NoteFilter
-require 'rubygems'
 require 'bundler/setup'
 Bundler.require(:default)
 
@@ -14,9 +13,9 @@ CREDENTIALS_PATH = File.join(Dir.home, '.credentials', 'rubynote.yaml')
 
 SERVICE_HOST = 'www.evernote.com'
 # Url to view the note via the web client
-NOTE_WEBCLIENT_URL = "https://#{SERVICE_HOST}/Home.action?#n=%<note_guid>s"
+NOTE_WEBCLIENT_URL = "https://#{SERVICE_HOST}/Home.action?#n=%<note_guid>s".freeze
 # Direct note link (see https://dev.evernote.com/doc/articles/note_links.php)
-NOTE_LINK = "https://#{SERVICE_HOST}/shard/%<shard_id>s/nl/%<user_id>s/%<note_guid>s"
+NOTE_LINK = "https://#{SERVICE_HOST}/shard/%<shard_id>s/nl/%<user_id>s/%<note_guid>s".freeze
 
 class Rubynote
   extend Memoist
@@ -61,7 +60,6 @@ class Rubynote
   end
   memoize :tags
 end
-
 
 class Rubynote_CLI < Thor
   class_option :verbose, type: :boolean
