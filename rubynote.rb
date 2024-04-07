@@ -13,8 +13,10 @@ CREDENTIALS_PATH = File.join(Dir.home, '.credentials', 'rubynote.yaml')
 
 SERVICE_HOST = 'www.evernote.com'
 # Url to view the note via the web client
-NOTE_WEBCLIENT_URL = "https://#{SERVICE_HOST}/Home.action?#n=%<note_guid>s".freeze
+# e.g. https://www.evernote.com/client/web#/note/cd43781e-5bc1-4c3d-8f11-48a5f2fdb60d
+NOTE_WEBCLIENT_URL = "https://#{SERVICE_HOST}/client/web#/note/%<note_guid>s".freeze
 # Direct note link (see https://dev.evernote.com/doc/articles/note_links.php)
+# e.g. https://www.evernote.com/shard/s1/nl/2079/cd43781e-5bc1-4c3d-8f11-48a5f2fdb60d
 NOTE_LINK = "https://#{SERVICE_HOST}/shard/%<shard_id>s/nl/%<user_id>s/%<note_guid>s".freeze
 
 class Rubynote
@@ -161,6 +163,7 @@ class Rubynote_CLI < Thor
       rubynote = Rubynote.new
       created_note = rubynote.note_store.createNote(rubynote.auth_token, note)
       pp created_note if options[:verbose]
+      # puts "NoteLink: #{format NOTE_LINK, { shard_id: rubynote.en_user.shardId, user_id: rubynote.en_user.id, note_guid: created_note.guid }}"
       puts "created: #{format NOTE_WEBCLIENT_URL, { note_guid: created_note.guid }}"
     end
   end
