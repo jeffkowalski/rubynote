@@ -61,6 +61,11 @@ class Rubynote
     note_store.listTags
   end
   memoize :tags
+
+  def tag_counts
+    collection_counts = note_store.findNoteCounts(auth_token, Evernote::EDAM::NoteStore::NoteFilter.new, false)
+    Hash[collection_counts.tagCounts.map { |k, v| [k, v] }]
+  end
 end
 
 class Rubynote_CLI < Thor
@@ -248,14 +253,16 @@ class Rubynote_CLI < Thor
 
   desc 'tag-list', ''
   method_option :depth,            type: :numeric, desc: 'depth of hierarchy, implies --tree'
-  method_option :show_guid,        type: :boolean, desc: 'show note guid'
-  method_option :show_parent,      type: :boolean, desc: 'show note parent'
-  method_option :show_parent_guid, type: :boolean, desc: 'show note parent guid'
+  method_option :show_guid,        type: :boolean, desc: 'show tag guid'
+  method_option :show_parent,      type: :boolean, desc: 'show tag parent'
+  method_option :show_parent_guid, type: :boolean, desc: 'show tag parent guid'
+  method_option :show_note_count,  type: :boolean, desc: 'show count of notes with tag'
   method_option :tree,             type: :boolean, desc: 'display tag hierarchy as tree'
   def tag_list
     as_tree = options[:tree] || options[:depth]&.positive?
 
     rubynote = Rubynote.new
+    tag_counts = rubynote.tag_counts if options[:show_note_count]
     nodes = [] # for as_tree
     rubynote.tags&.collect { |t| [t.name.downcase, t] }&.sort&.collect { |s| s[1] }&.each do |tag|
       nodes.push({ id: tag.guid, name: tag.name, parent_id: tag.parentGuid })
@@ -265,13 +272,15 @@ class Rubynote_CLI < Thor
       puts tag.parentGuid if options[:show_parent_guid]
       puts tag.guid if options[:show_guid]
       puts rubynote.tags.find { |parent| parent.guid == tag.parentGuid }&.name if options[:show_parent]
-      puts tag.name
+      count = options[:show_note_count] ? " (#{tag_counts[tag.guid]})" : ''
+      puts "#{tag.name}#{count}"
     end
 
     return unless as_tree
 
-    # https://fractaledmind.com/articles/a-simple-tree-building-algorithm/
-    tree = {}
+    # Initialize tree with a default nil root
+    tree = { nil => { children: [] } }
+
     nodes&.each do |node|
       current_default = { parent_id: node[:parent_id], name: node[:name] }
       tree[node[:id]] ||= current_default
@@ -291,15 +300,18 @@ class Rubynote_CLI < Thor
       last_idx = children.nil? ? 0 : children.length - 1
 
       children&.each_with_index do |child, idx|
-        pointer, preadd = idx == last_idx ? ['└── ', '    '] : ['├── ', '│   ']
-        puts "#{prefix}#{pointer}#{branch[child][:name]}"
+        subtags = branch[child][:children] ? '┬' : '─'
+        pointer, preadd = idx == last_idx ? ["└───#{subtags} ", '    '] : ["├───#{subtags} ", '│   ']
+        count = options[:show_note_count] ? " (#{tag_counts[child]})" : ''
+        puts "#{prefix}#{pointer}#{branch[child][:name]}#{count}"
         visit_children.call(child, branch, "#{prefix}#{preadd}", depth + 1)
       end
     end
 
     tree[nil][:children]&.each do |root|
-      puts tree[root][:name]
-      visit_children.call(root, tree, 2)
+      count = options[:show_note_count] ? " (#{tag_counts[root]})" : ''
+      puts "#{tree[root][:name]}#{count}"
+      visit_children.call(root, tree, '', 1)
     end
   end
 end
