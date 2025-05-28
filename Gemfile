@@ -3,7 +3,7 @@
 source 'https://rubygems.org'
 
 gem 'base64'
-gem 'evernote_oauth', git: 'https://github.com/swiftype/evernote-oauth-ruby.git'
+gem 'evernote_oauth', git: 'https://github.com/jeffkowalski/evernote-oauth-ruby.git'
 gem 'evernote-thrift', git: 'https://github.com/jeffkowalski/evernote-sdk-ruby.git'
 gem 'logger'
 gem 'loofah'
