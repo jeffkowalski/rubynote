@@ -7,6 +7,7 @@
 # https://www.rubydoc.info/gems/evernote-thrift/1.24.0/Evernote/EDAM/NoteStore/NoteFilter
 require 'bundler/setup'
 Bundler.require(:default)
+require 'cgi/escape'
 
 LOGFILE = File.join(Dir.home, '.log', 'rubynote.log')
 CREDENTIALS_PATH = File.join(Dir.home, '.credentials', 'rubynote.yaml')
@@ -154,11 +155,13 @@ class Rubynote_CLI < Thor
       resource_refs.append "<en-media type=\"#{mimetype}\" hash=\"#{body_hash}\"/>"
     end
 
+    body = options[:content].empty? ? [] : options[:content].split("\n").map { |line| "<div>#{CGI.escapeHTML(line)}</div>" }
+    body += resource_refs
     note.content = <<~END_CONTENT
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
       <en-note>
-        #{resource_refs.join("\n  ")}
+        #{body.join("\n  ")}
       </en-note>
     END_CONTENT
 
