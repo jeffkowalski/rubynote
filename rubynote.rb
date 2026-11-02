@@ -58,6 +58,13 @@ class Rubynote
   end
   memoize :notebooks
 
+  def notebook_guid_for(name)
+    notebook = notebooks.find { |candidate| candidate.name == name }
+    raise "no notebook named \"#{name}\"" if notebook.nil?
+
+    notebook.guid
+  end
+
   def tags
     note_store.listTags
   end
@@ -130,17 +137,23 @@ class Rubynote_CLI < Thor
   desc 'create', ''
   method_option :content,          type: :string, default: ''
   method_option :dry_run,          type: :boolean
+  method_option :notebook,         type: :string, desc: 'place the note in the notebook with this exact name'
   method_option :notebook_guid,    type: :string
   method_option :resource,         type: :string, repeatable: true
   method_option :source_url,       type: :string
   method_option :tag,              type: :string, repeatable: true
   method_option :title,            type: :string, default: 'Untitled Note'
   def create
+    rubynote = Rubynote.new
     note = Evernote::EDAM::Type::Note.new(
       title: options[:title],
       tagNames: options[:tag]
     )
-    note.notebookGuid = options[:notebook_guid] if options[:notebook_guid]
+    if options[:notebook_guid]
+      note.notebookGuid = options[:notebook_guid]
+    elsif options[:notebook]
+      note.notebookGuid = rubynote.notebook_guid_for(options[:notebook])
+    end
 
     if options[:source_url]
       note.attributes = Evernote::EDAM::Type::NoteAttributes.new if note.attributes.nil?
@@ -168,7 +181,6 @@ class Rubynote_CLI < Thor
     if options[:dry_run]
       pp note
     else
-      rubynote = Rubynote.new
       created_note = rubynote.note_store.createNote(rubynote.auth_token, note)
       pp created_note if options[:verbose]
       # puts "NoteLink: #{format NOTE_LINK, { shard_id: rubynote.en_user.shardId, user_id: rubynote.en_user.id, note_guid: created_note.guid }}"
@@ -319,4 +331,4 @@ class Rubynote_CLI < Thor
   end
 end
 
-Rubynote_CLI.start
+Rubynote_CLI.start if $PROGRAM_NAME == __FILE__

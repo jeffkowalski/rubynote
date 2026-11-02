@@ -9,6 +9,7 @@ gem 'logger'
 gem 'loofah'
 gem 'marcel'
 gem 'memoist'
+gem 'minitest', group: :test
 gem 'thor'
 
 # for robe:

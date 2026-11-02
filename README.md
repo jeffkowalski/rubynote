@@ -33,6 +33,12 @@ env -i HOME=$HOME PATH=$PATH \
     bundle exec /path/to/rubynote/rubynote.rb "$@"
 ```
 
+## Testing
+
+```sh
+bundle exec ruby test/notebook_guid_test.rb
+```
+
 ## Configuration
 
 rubynote reads its credentials from `~/.credentials/rubynote.yaml`:
@@ -71,7 +77,8 @@ rubynote create --title "Receipt" --resource scan.pdf --tag receipts --tag 2026
 | `--content CONTENT` | Note body as plain text; each line becomes a paragraph (default: empty) |
 | `--resource FILE` | Attach a file; repeatable. MIME type is detected automatically |
 | `--tag TAG` | Apply a tag; repeatable |
-| `--notebook-guid GUID` | Place the note in a specific notebook |
+| `--notebook NAME` | Place the note in the notebook with this exact name; fails if no such notebook exists |
+| `--notebook-guid GUID` | Place the note in a specific notebook by GUID (takes precedence over `--notebook`) |
 | `--source-url URL` | Set the note's source URL attribute |
 | `--dry-run` | Print the note that would be created without sending it |
 
